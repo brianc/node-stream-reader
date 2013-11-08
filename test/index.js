@@ -104,7 +104,7 @@ describe('read 1', function() {
       var worker = pop(this.stream, function(obj, next) {
         throw new Error('something bad happened')
       })
-      worker.on('error', function(err) {
+      worker.once('error', function(err) {
         assert.equal(err.message, 'something bad happened')
         done()
       })
@@ -136,12 +136,13 @@ describe('read 1', function() {
       })
       worker.on('error', function(err) {
         assert.equal(err.message, 'something bad happened')
+        worker.resume()
         errorCount++
       })
     })
   })
 
-  it('stops after 1 read', function(done) {
+  it('paused after error is emmitted', function(done) {
     this.stream.write({name: 'brian'})
     this.stream.write({name: 'aaron'})
     var worker = pop(this.stream, function(obj, next) {
@@ -150,7 +151,7 @@ describe('read 1', function() {
       }, 10)
     })
     worker.once('error', function(err) {
-      worker.stop()
+      worker.pause()
       done()
     })
   })

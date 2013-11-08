@@ -2,7 +2,7 @@ var domains = require('domain')
 
 module.exports = function(stream, cb) {
   var domain = domains.create()
-  var run = true
+  var paused = false
 
   var dispatch = function() {
     var item = stream.read()
@@ -14,7 +14,7 @@ module.exports = function(stream, cb) {
 
   var readOne = function(err) {
     if(err) return domain.emit('error', err);
-    if(!run) return;
+    if(paused) return;
 
     //stream could already have an item ready to be read
     if(dispatch()) return
@@ -25,14 +25,16 @@ module.exports = function(stream, cb) {
       readOne()
     })
   }
+
   setImmediate(domain.run.bind(domain, readOne))
 
-  domain.on('error', function() {
-    setImmediate(domain.run.bind(domain, readOne))
-  })
+  domain.pause = function() {
+    paused = true
+  }
 
-  domain.stop = function() {
-    run = false
+  domain.resume = function() {
+    paused = false
+    setImmediate(readOne)
   }
 
   return domain
