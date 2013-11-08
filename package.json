@@ -1,0 +1,26 @@
+{
+  "name": "popper",
+  "version": "0.0.1",
+  "description": "pop the next object off a readable object stream and work on it. Domain safe and battle tested.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianc/node-popper"
+  },
+  "keywords": [
+    "readable",
+    "stream",
+    "worker"
+  ],
+  "author": "Brian M. Carlson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brianc/node-popper/issues"
+  },
+  "devDependencies": {
+    "mocha": "~1.14.0"
+  }
+}
