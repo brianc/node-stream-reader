@@ -1,14 +1,14 @@
 {
-  "name": "popper",
+  "name": "stream-reader",
   "version": "0.0.1",
-  "description": "pop the next object off a readable object stream and work on it. Domain safe and battle tested.",
+  "description": "read the next object off a readable object stream and work on it. Domain safe and battle tested.",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/brianc/node-popper"
+    "url": "git://github.com/brianc/node-stream-reader"
   },
   "keywords": [
     "readable",
@@ -18,7 +18,7 @@
   "author": "Brian M. Carlson",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/brianc/node-popper/issues"
+    "url": "https://github.com/brianc/node-stream-reader/issues"
   },
   "devDependencies": {
     "mocha": "~1.14.0"
