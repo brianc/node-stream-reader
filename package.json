@@ -1,6 +1,6 @@
 {
   "name": "stream-reader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "read the next object off a readable object stream and work on it. Domain safe and battle tested.",
   "main": "index.js",
   "scripts": {
