@@ -8,7 +8,13 @@ module.exports = function(stream, cb) {
     var item = stream.read()
     if(!item) return false;
 
-    cb(item, readOne)
+    setImmediate(function() {
+      domain.run(function() {
+        domain.item = item
+        domain.stream = stream
+        cb(item, readOne)
+      })
+    })
     return true
   }
 
@@ -17,16 +23,16 @@ module.exports = function(stream, cb) {
     if(paused) return;
 
     //stream could already have an item ready to be read
-    if(dispatch()) return
+    if(dispatch()) return;
 
     //if we couldn't read immediately, wait and try when the stream is readable
     stream.once('readable', function() {
-      if(dispatch()) return
+      if(dispatch()) return;
       readOne()
     })
   }
 
-  setImmediate(domain.run.bind(domain, readOne))
+  setImmediate(readOne)
 
   domain.pause = function() {
     paused = true

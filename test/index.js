@@ -6,6 +6,12 @@ var pop = require('../')
 describe('read 1', function() {
   beforeEach(function() {
     this.stream = new require('stream').PassThrough({objectMode: true})
+    this.write = function(name, async) {
+      if(!async) return this.stream.write({name: name});
+      setTimeout(function() {
+        this.stream.write({name: name})
+      }.bind(this), 10)
+    }
   })
 
   it('single reader', function(done) {
@@ -43,7 +49,7 @@ describe('read 1', function() {
     pop(this.stream, worker)
     pop(this.stream, worker)
     this.stream.write({name: 'brian'})
-    this.stream.write({name: 'aaron'})
+    this.write('aaron')
   })
 
   it('works with already loaded stream', function(done) {
@@ -111,8 +117,13 @@ describe('read 1', function() {
     })
 
     it('emits async error', function(done) {
-      this.stream.write({name: 'brian'})
+      setTimeout(function() {
+        this.stream.write({name: 'brian'})
+      }.bind(this), 10)
       var worker = pop(this.stream, function(obj, next) {
+        if(!process.domain) {
+          return done(new Error('Not in a domain'))
+        }
         setImmediate(function() {
           throw new Error('something bad happened')
         })
@@ -124,11 +135,18 @@ describe('read 1', function() {
     })
 
     it('emits async error way down the line and keeps reading', function(done) {
-      this.stream.write({name: 'brian'})
-      this.stream.write({name: 'aaron'})
-      this.stream.write({name: 'shelley'})
+
+      setTimeout(function() {
+        this.stream.write({name: 'brian'})
+        this.stream.write({name: 'aaron'})
+        this.stream.write({name: 'shelley'})
+      }.bind(this), 10)
+
       var errorCount = 0
       var worker = pop(this.stream, function(obj, next) {
+        if(!process.domain) {
+          return done(new Error('Not in a domain'))
+        }
         if(obj.name !== 'shelley') throw new Error('something bad happened');
         if(obj.name === 'shelley') return done();
         assert.equal(errorCount, 2, 'should have received 2 errors')
@@ -153,6 +171,46 @@ describe('read 1', function() {
     worker.once('error', function(err) {
       worker.pause()
       done()
+    })
+  })
+
+  it('still finishes if one worker dies', function(done) {
+    this.write('brian')
+    this.write('aaron')
+    this.write('shelley', true)
+    var worker1Domain = null
+    var worker2Domain = null
+    var worker1 = pop(this.stream, function(obj, next) {
+      assert(process.domain, 'missing a domain')
+      worker1Domain = process.domain
+      next(new Error('I always throw an error'))
+    })
+
+    var count = 0
+    var worker2 = pop(this.stream, function(obj, next) {
+      assert(process.domain, 'missing a domain')
+      if(!worker2Domain) {
+        worker2Domain = process.domain
+      }
+      if(worker1Domain) {
+        assert(worker1Domain != process.domain, 'worker1 domain should differ from worker2 domain')
+      }
+      assert.equal(worker2Domain, process.domain)
+      count++
+      if(obj.name === 'shelley') {
+        assert.equal(count, 3)
+        return done()
+      }
+      next()
+    })
+
+    worker1.on('error', function(err) {
+      assert.equal(err.message, 'I always throw an error')
+      worker1.stream.unshift(worker1.item)
+      worker1.pause()
+      setTimeout(function() {
+        worker1.resume()
+      }, 5)
     })
   })
 })
